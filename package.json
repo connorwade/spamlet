@@ -1,0 +1,23 @@
+{
+  "name": "pw-crawler-ver2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.cjs",
+  "module": "lib/index.mjs",
+  "scripts": {
+    "dev": "node dev/dev.js",
+    "test": "node --test",
+    "build": "node build.js"
+  },
+  "keywords": [],
+  "author": "Connor Wade",
+  "license": "ISC",
+  "dependencies": {
+    "playwright": "^1.35.1"
+  },
+  "type": "module",
+  "devDependencies": {
+    "esbuild": "^0.18.11",
+    "typescript": "^5.1.6"
+  }
+}
