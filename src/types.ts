@@ -6,11 +6,11 @@ export type PageResponseCallback = (res: Response) => Promise<void>;
 
 export type LocatorCallbackContainer = {
   selector: string;
-  Callback: LocatorCallback;
-};
+  callback: LocatorCallback;
+}[];
 export type PageLoadCallbackContainer = {
-  Callback: PageLoadCallback;
-};
+  callback: PageLoadCallback;
+}[];
 export type PageResponseCallbackContainer = {
-  Callback: PageResponseCallback;
-};
+  callback: PageResponseCallback;
+}[];

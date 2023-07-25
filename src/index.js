@@ -28,15 +28,15 @@ export default class Crawler {
   /**
    * @type {import("./types.js").LocatorCallbackContainer}
    */
-  onLocatorCallbacks = [];
+  onLocatorCallbacks;
   /**
    * @type {import("./types.js").PageLoadCallbackContainer}
    */
-  onPageLoadCallbacks = [];
+  onPageLoadCallbacks;
   /**
    * @type {import("./types.js").PageResponseCallbackContainer}
    */
-  onPageResponseCallbacks = [];
+  onPageResponseCallbacks;
 
   /**
    * @param {string[]} allowedDomains
@@ -97,7 +97,7 @@ export default class Crawler {
     let numOfRequests = 0;
     const context = await this.#initContext();
 
-    await this.visitLink(starterUrl);
+    await this.visitLink(starterUrl + "/");
 
     let startTime = performance.now();
     while (this.cbStack.length) {
@@ -138,6 +138,7 @@ export default class Crawler {
    * @param {string | URL} link
    */
   async #visit(page, link) {
+    link = typeof link !== "string" ? link.toString() : link;
     const res = await page.goto(link);
     this.visitedUrls.add(link);
 

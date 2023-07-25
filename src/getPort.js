@@ -1,4 +1,4 @@
-import net from "node:net";
+import * as net from "node:net";
 
 const isPortOpen = async (port) => {
   return new Promise((resolve, reject) => {
