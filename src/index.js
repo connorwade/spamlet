@@ -26,9 +26,9 @@ export default class Crawler {
   port;
 
   /**
-   * @type {import("./types.js").LocatorCallbackContainer}
+   * @type {import("./types.js").SelectorCallbackContainer}
    */
-  onLocatorCallbacks;
+  onSelectorCallbacks;
   /**
    * @type {import("./types.js").PageLoadCallbackContainer}
    */
@@ -37,6 +37,10 @@ export default class Crawler {
    * @type {import("./types.js").PageResponseCallbackContainer}
    */
   onPageResponseCallbacks;
+  /**
+   * @type {import("./types.js").LocatorCallbackContainer}
+   */
+  onLocatorCallbacks;
 
   /**
    * @param {string[]} allowedDomains
@@ -153,6 +157,7 @@ export default class Crawler {
       console.log("Headers:", await res?.allHeaders());
     } else {
       await this.#onPageLoadHandler(page);
+      await this.#onSelectorHandler(page);
       await this.#onLocatorHandler(page);
     }
 
@@ -222,10 +227,10 @@ export default class Crawler {
   /**
    *
    * @param {string} selector
-   * @param {import("./types.js").LocatorCallback} cb
+   * @param {import("./types.js").SelectorCallback} cb
    */
-  async onLocator(selector, cb) {
-    this.onLocatorCallbacks.push({
+  async onSelector(selector, cb) {
+    this.onSelectorCallbacks.push({
       selector: selector,
       callback: cb,
     });
@@ -235,9 +240,33 @@ export default class Crawler {
    *
    * @param {import('playwright').Page} page
    */
-  async #onLocatorHandler(page) {
-    for (const { selector, callback } of this.onLocatorCallbacks) {
+  async #onSelectorHandler(page) {
+    for (const { selector, callback } of this.onSelectorCallbacks) {
       const locs = page.locator(selector);
+      for (const loc of await locs.all()) {
+        await callback(loc);
+      }
+    }
+  }
+
+  /**
+   *
+   * @param {import('playwright').Locator} loc
+   * @param {import("./types.js").LocatorCallback} cb
+   */
+  async onLocator(loc, cb) {
+    this.onLocatorCallbacks.push({
+      locs: loc,
+      callback: cb,
+    });
+  }
+
+  /**
+   *
+   * @param {import('playwright').Page} page
+   */
+  async #onLocatorHandler(page) {
+    for (const { locs, callback } of this.onLocatorCallbacks) {
       for (const loc of await locs.all()) {
         await callback(loc);
       }
