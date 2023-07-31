@@ -1,13 +1,23 @@
 import * as esbuild from "esbuild";
 
-await esbuild.build({
+const commonConfig = {
   entryPoints: ["src/index.js"],
   bundle: true,
   platform: "node",
   target: ["node16.0"],
-  mainFields: ["module", "main"],
   packages: "external",
-  outdir: "lib",
-  // external: ["node_modules"],
+  // outdir: "lib",
   tsconfig: "tsconfig.json",
+};
+
+await esbuild.build({
+  ...commonConfig,
+  format: "cjs",
+  outfile: "lib/index.js",
+});
+
+await esbuild.build({
+  ...commonConfig,
+  format: "esm",
+  outfile: "lib/index.mjs",
 });

@@ -23,7 +23,8 @@
   "scripts": {
     "dev": "node dev/dev.js",
     "test": "jest",
-    "build": "node build.js"
+    "build": "node build.js && tsc",
+    "build:types": "tsc"
   },
   "keywords": [
     "playwright",
