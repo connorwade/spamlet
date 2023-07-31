@@ -1,6 +1,11 @@
 import * as net from "node:net";
 
-const isPortOpen = async (port) => {
+/**
+ *
+ * @param {number} port
+ * @returns {Promise<boolean>}
+ */
+export const isPortOpen = async (port) => {
   return new Promise((resolve, reject) => {
     let server = net.createServer();
     server.once("error", (err) => {
@@ -14,6 +19,11 @@ const isPortOpen = async (port) => {
   });
 };
 
+/**
+ *
+ * @param {number} startFrom
+ * @returns {Promise<number>}
+ */
 export const getNextOpenPort = async (startFrom = 2222) => {
   let openPort = null;
   while (startFrom < 65535 || !!openPort) {

@@ -7,10 +7,10 @@ const crawler = new Crawler(["localhost:5173"], disallowedFilters, {
   disableRoutes: "**.{png, jpeg, jpg, webm, svg}",
   rateLimit: 1 * 10 * 1000,
 });
-const sitemap = [];
+const sitemap: string[] = [];
 
 crawler.onSelector("a[href]", async (loc) => {
-  const href = await loc.getAttribute("href");
+  const href = (await loc.getAttribute("href")) ?? "";
   const origin = loc.page().url();
   const link = crawler.sanitizeLink(href, origin);
   await crawler.visitLink(link);
