@@ -1,17 +1,40 @@
 {
-  "name": "pw-crawler-ver2",
+  "name": "spamlet",
   "version": "1.0.0",
-  "description": "",
+  "description": "spamlet is an efficient and simple crawler for playwright",
   "main": "lib/index.cjs",
   "module": "lib/index.mjs",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "lib/**/*"
+  ],
+  "types": "./lib/index.cjs",
   "scripts": {
     "dev": "node dev/dev.js",
     "test": "jest",
     "build": "node build.js"
   },
-  "keywords": [],
+  "keywords": [
+    "playwright",
+    "crawler",
+    "automation",
+    "scraper",
+    "crawling",
+    "scraping"
+  ],
   "author": "Connor Wade",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "dependencies": {
     "playwright": "^1.35.1"
   },
