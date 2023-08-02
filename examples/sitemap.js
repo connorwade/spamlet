@@ -1,13 +1,15 @@
-import Crawler from "../src/index.js";
+import Spamlet from "../src/index.js";
 
 const starterUrl = "http://localhost:5173";
 const disallowedFilters = [/.*\?.*/gm, /#.*/gm];
-const crawler = new Crawler(["localhost:5173"], disallowedFilters, "chromium", {
+const crawler = new Spamlet(["localhost:5173"], disallowedFilters, "chromium", {
   headless: false,
   disableRoutes: "**.{png, jpeg, jpg, webm, svg}",
   rateLimit: 1 * 1 * 1000,
 });
 const sitemap = [];
+
+crawler.initContext();
 
 crawler.onPageResponse(async (res) => {
   console.log(res.url());

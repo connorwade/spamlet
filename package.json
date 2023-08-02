@@ -1,6 +1,6 @@
 {
   "name": "spamlet",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "spamlet is an efficient and simple crawler for playwright",
   "main": "lib/index.cjs",
   "module": "lib/index.mjs",
@@ -17,11 +17,12 @@
     }
   },
   "files": [
-    "lib/**/*"
+    "lib/**/*",
+    "readme.md",
+    "LICENSE"
   ],
   "types": "./lib/index.cjs",
   "scripts": {
-    "dev": "node dev/dev.js",
     "test": "jest",
     "build": "node build.js && tsc",
     "build:types": "tsc"

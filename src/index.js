@@ -3,10 +3,10 @@ import { getNextOpenPort } from "./getPort.js";
 import { sleep } from "./utils.js";
 
 /**
- * Create a new Crawler object
+ * Create a new Spamlet object
  * @class
  */
-export default class Crawler {
+export default class Spamlet {
   /**
    * @type {Set<string>}
    */
@@ -112,7 +112,7 @@ export default class Crawler {
   }
 
   /**
-   * initiates the crawl with the crawler
+   * initiates the crawl with the Spamlet
    * @param {string} starterUrl
    */
   async crawl(starterUrl) {
@@ -354,6 +354,7 @@ export default class Crawler {
    */
   #attachPageEvents(page) {
     for (const { event, cb } of this.pageEvents) {
+      // @ts-ignore
       page.on(event, cb);
     }
     return page;

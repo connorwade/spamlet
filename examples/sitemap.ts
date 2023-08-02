@@ -1,13 +1,15 @@
-import Crawler from "../src/index.js";
+import Spamlet from "../src/index.js";
 
 const starterUrl = "http://localhost:5173";
 const disallowedFilters = [/.*\?.*/gm, /#.*/gm];
-const crawler = new Crawler(["localhost:5173"], disallowedFilters, "chromium", {
+const crawler = new Spamlet(["localhost:5173"], disallowedFilters, "chromium", {
   headless: false,
   disableRoutes: "**.{png, jpeg, jpg, webm, svg}",
   rateLimit: 1 * 10 * 1000,
 });
 const sitemap: string[] = [];
+
+crawler.initContext();
 
 crawler.onSelector("a[href]", async (loc) => {
   const href = (await loc.getAttribute("href")) ?? "";
