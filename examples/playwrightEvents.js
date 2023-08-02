@@ -7,22 +7,22 @@ const crawler = new Crawler(["localhost:5173"], disallowedFilters, "chromium", {
   disableRoutes: "**.{png, jpeg, jpg, webm, svg}",
   rateLimit: 1 * 1 * 1000,
 });
-const sitemap = [];
 
-crawler.onPageResponse(async (res) => {
-  console.log(res.url());
-});
+await crawler.initContext();
 
 crawler.onSelector("a[href]", async (loc) => {
-  const href = await loc.getAttribute("href");
+  const href = (await loc.getAttribute("href")) ?? "";
   const origin = loc.page().url();
   const link = crawler.sanitizeLink(href, origin);
-  await crawler.visitLink(link);
+  link && (await crawler.visitLink(link));
 });
 
-crawler.onPageLoad(async (page) => {
-  sitemap.push(page.url());
+crawler.context.on("request", (req) => {
+  console.log("Page Request:", req.url());
+});
+
+crawler.addPageEvent("load", (page) => {
+  console.log("Looking at page:", page.url());
 });
 
 await crawler.crawl(starterUrl);
-console.log(sitemap);

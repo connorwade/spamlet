@@ -1,4 +1,4 @@
-import { Locator, Page, Response } from "playwright";
+import { Locator, Page, Response, Worker } from "playwright";
 
 export type SelectorCallback = (locator: Locator) => Promise<void>;
 export type PageLoadCallback = (page: Page) => Promise<void>;
@@ -19,3 +19,23 @@ export type LocatorCallbackContainer = {
   locs: Locator;
   callback: LocatorCallback;
 }[];
+export type PageEvents =
+  | "close"
+  | "console"
+  | "crash"
+  | "dialog"
+  | "domcontentloaded"
+  | "download"
+  | "filechooser"
+  | "frameattached"
+  | "framedetached"
+  | "framenavigated"
+  | "load"
+  | "pageerror"
+  | "popup"
+  | "request"
+  | "requestfailed"
+  | "requestfinished"
+  | "response"
+  | "websocket"
+  | "worker";

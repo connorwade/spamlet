@@ -5,24 +5,18 @@ const disallowedFilters = [/.*\?.*/gm, /#.*/gm];
 const crawler = new Crawler(["localhost:5173"], disallowedFilters, "chromium", {
   headless: false,
   disableRoutes: "**.{png, jpeg, jpg, webm, svg}",
-  rateLimit: 1 * 1 * 1000,
-});
-const sitemap = [];
-
-crawler.onPageResponse(async (res) => {
-  console.log(res.url());
+  rateLimit: 1 * 10 * 1000,
 });
 
-crawler.onSelector("a[href]", async (loc) => {
-  const href = await loc.getAttribute("href");
+crawler.onLocator(crawler.activePage!.getByRole("link")!, async (loc) => {
+  const href = (await loc.getAttribute("href")) ?? "";
   const origin = loc.page().url();
   const link = crawler.sanitizeLink(href, origin);
-  await crawler.visitLink(link);
+  link && (await crawler.visitLink(link));
 });
 
-crawler.onPageLoad(async (page) => {
-  sitemap.push(page.url());
+crawler.context?.on("page", async (page) => {
+  console.log("URL:", page.url());
 });
 
 await crawler.crawl(starterUrl);
-console.log(sitemap);

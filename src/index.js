@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { chromium, firefox, webkit } from "playwright";
 import { getNextOpenPort } from "./getPort.js";
 import { sleep } from "./utils.js";
 
@@ -28,35 +28,37 @@ export default class Crawler {
   /**
    * @type {import("./types.js").SelectorCallbackContainer}
    */
-  onSelectorCallbacks;
+  onSelectorCallbacks = [];
   /**
    * @type {import("./types.js").PageLoadCallbackContainer}
    */
-  onPageLoadCallbacks;
+  onPageLoadCallbacks = [];
   /**
    * @type {import("./types.js").PageResponseCallbackContainer}
    */
-  onPageResponseCallbacks;
+  onPageResponseCallbacks = [];
   /**
    * @type {import("./types.js").LocatorCallbackContainer}
    */
-  onLocatorCallbacks;
+  onLocatorCallbacks = [];
 
   /**
    * @param {string[]} allowedDomains
    * @param {RegExp[]} disallowedFilters
+   * @param {'chromium' | 'firefox' | 'webkit'} browserType
    * @param {{
-   *    https?: boolean
    *    headless?: boolean
    *    rateLimit?: number
-   *    disableRoutes?: string | RegExp | ((url: URL) => boolean)
-   * }} opts
+   *    disableRoutes? : string | RegExp
+   *    contextOptions?: import('playwright').BrowserContextOptions
+   * }} options
    */
 
   constructor(
     allowedDomains,
     disallowedFilters,
-    opts = { headless: true, rateLimit: -Infinity }
+    browserType,
+    options = { headless: true, rateLimit: -Infinity }
   ) {
     /**
      * @type {string[]}
@@ -67,30 +69,46 @@ export default class Crawler {
      */
     this.disallowedFilters = disallowedFilters;
     /**
+     * @type {'chromium' | 'firefox' | 'webkit'}
+     */
+    this.browserType = browserType;
+    /**
      * @type {{
-     *    https?: boolean
      *    headless?: boolean
+     *    disableRoutes?: string | RegExp
      *    rateLimit?: number
-     *    disableRoutes?: string | RegExp | ((url: URL) => boolean)
+     *    contextOptions?: import('playwright').BrowserContextOptions
      * }}
      */
-    this.opts = opts;
+    this.options = options;
   }
 
-  async #initContext() {
+  async initContext() {
     this.port = await getNextOpenPort();
     /**
      * @type {import('playwright').LaunchOptions}
      */
-    const chromiumLaunchOptions = {
-      headless: this.opts.headless,
+    const launchOptions = {
+      headless: this.options.headless,
       args: [`--remote-debugging-port=${this.port}`],
     };
-    this.browser = await chromium.launch(chromiumLaunchOptions);
-    const context = await this.browser.newContext();
-    if (this.opts.disableRoutes)
-      await context.route(this.opts.disableRoutes, (route) => route.abort());
-    return context;
+
+    switch (this.browserType) {
+      case "chromium":
+        this.browser = await chromium.launch(launchOptions);
+        break;
+      case "firefox":
+        this.browser = await firefox.launch(launchOptions);
+        break;
+      case "webkit":
+        this.browser = await webkit.launch(launchOptions);
+        break;
+    }
+
+    const context = await this.browser.newContext(this.options.contextOptions);
+    if (this.options.disableRoutes)
+      await context.route(this.options.disableRoutes, (route) => route.abort());
+    this.context = context;
   }
 
   /**
@@ -99,16 +117,18 @@ export default class Crawler {
    */
   async crawl(starterUrl) {
     let numOfRequests = 0;
-    const context = await this.#initContext();
 
-    await this.visitLink(starterUrl + "/");
+    let start = this.sanitizeLink(starterUrl);
+    await this.visitLink(start);
 
     let startTime = performance.now();
     while (this.cbStack.length) {
       let execFrame = this.cbStack.pop();
       switch (execFrame.type) {
         case "REQUEST":
-          const page = await context.newPage();
+          const page = await this.context.newPage();
+          this.pageEvents && this.#attachPageEvents(page);
+          this.activePage = page;
           if (await this.validateLink(page, execFrame.url)) {
             continue;
           }
@@ -116,9 +136,9 @@ export default class Crawler {
           let timeToNow = performance.now() - startTime;
           let requestRate = numOfRequests / timeToNow;
 
-          if (numOfRequests > 1 && requestRate >= 1 / this.opts.rateLimit) {
+          if (numOfRequests > 1 && requestRate >= 1 / this.options.rateLimit) {
             console.log("Rate Limiting...");
-            await sleep(this.opts.rateLimit);
+            await sleep(this.options.rateLimit);
           }
           await this.#visit(page, execFrame.url);
           break;
@@ -131,11 +151,10 @@ export default class Crawler {
       }
     }
 
-    context.close();
+    this.context.close();
     this.browser.close();
   }
 
-  //TODO: Maybe make private and rename
   /**
    *
    * @param {import('playwright').Page} page
@@ -164,6 +183,10 @@ export default class Crawler {
     await page.close();
   }
 
+  /**
+   *
+   * @param {string} link
+   */
   async visitLink(link) {
     this.cbStack.push({
       type: "REQUEST",
@@ -303,5 +326,36 @@ export default class Crawler {
     for (const { callback } of this.onPageResponseCallbacks) {
       await callback(res);
     }
+  }
+
+  /**
+   * @type {{
+   *  event: import('./types.js').PageEvents
+   *  cb: (page: (import("playwright").Page)) => void
+   * }[]}
+   */
+  pageEvents = [];
+  /**
+   *
+   * @param {import('./types.js').PageEvents} event
+   * @param {(page:(import("playwright").Page)) => void} cb
+   */
+  addPageEvent(event, cb) {
+    this.pageEvents.push({
+      event,
+      cb,
+    });
+  }
+
+  /**
+   *
+   * @param {import("playwright").Page} page
+   * @returns
+   */
+  #attachPageEvents(page) {
+    for (const { event, cb } of this.pageEvents) {
+      page.on(event, cb);
+    }
+    return page;
   }
 }
