@@ -6,6 +6,8 @@ Spamlet is a simple and efficient crawler plugin for Playwright.
 
 ## Install
 
+This is not distributed on npm yet. But in the future the command will be:
+
 ```bash
 npm -i playwright spamlet
 ```
