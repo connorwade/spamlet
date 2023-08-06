@@ -24,6 +24,7 @@
   "types": "./lib/index.cjs",
   "scripts": {
     "test": "jest",
+    "example:sitemap": "node examples/sitemap.js",
     "build": "node build.js && tsc",
     "build:types": "tsc"
   },
