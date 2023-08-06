@@ -16,7 +16,8 @@ export default class Spamlet {
    * type: string,
    * url?: URL | string,
    * base?: URL |string,
-   * res?: import('playwright').Response}[]
+   * res?: import('playwright').Response,
+   * depth?: number}[]
    * }
    */
   cbStack = [];
@@ -49,6 +50,7 @@ export default class Spamlet {
    * @param {{
    *    headless?: boolean
    *    rateLimit?: number
+   *    depth?: number
    *    disableRoutes? : string | RegExp
    *    contextOptions?: import('playwright').BrowserContextOptions
    * }} options
@@ -58,7 +60,7 @@ export default class Spamlet {
     allowedDomains,
     disallowedFilters,
     browserType,
-    options = { headless: true, rateLimit: -Infinity }
+    options = { headless: true, rateLimit: -Infinity, depth: 0 }
   ) {
     /**
      * @type {string[]}
@@ -77,10 +79,15 @@ export default class Spamlet {
      *    headless?: boolean
      *    disableRoutes?: string | RegExp
      *    rateLimit?: number
+     *    depth?: number
      *    contextOptions?: import('playwright').BrowserContextOptions
      * }}
      */
     this.options = options;
+    /**+
+     * @type {number}
+     */
+    this.currentDepth = 0;
   }
 
   async initContext() {
@@ -126,6 +133,13 @@ export default class Spamlet {
       let execFrame = this.cbStack.pop();
       switch (execFrame.type) {
         case "REQUEST":
+          if (
+            this.options.depth !== 0 &&
+            execFrame.depth > this.options.depth
+          ) {
+            continue;
+          }
+          this.currentDepth = execFrame.depth;
           const page = await this.context.newPage();
           this.pageEvents && this.#attachPageEvents(page);
           this.activePage = page;
@@ -191,6 +205,7 @@ export default class Spamlet {
     this.cbStack.push({
       type: "REQUEST",
       url: link,
+      depth: this.currentDepth + 1,
     });
   }
 

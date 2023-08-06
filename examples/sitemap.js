@@ -6,10 +6,11 @@ const crawler = new Spamlet(["localhost:5173"], disallowedFilters, "chromium", {
   headless: false,
   disableRoutes: "**.{png, jpeg, jpg, webm, svg}",
   rateLimit: 1 * 1 * 1000,
+  depth: 3,
 });
 const sitemap = [];
 
-crawler.initContext();
+await crawler.initContext();
 
 crawler.onPageResponse(async (res) => {
   console.log(res.url());

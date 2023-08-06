@@ -6,6 +6,7 @@ const crawler = new Spamlet(["localhost:5173"], disallowedFilters, "chromium", {
   headless: false,
   disableRoutes: "**.{png, jpeg, jpg, webm, svg}",
   rateLimit: 1 * 10 * 1000,
+  depth: 1,
 });
 const sitemap: string[] = [];
 
