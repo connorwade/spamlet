@@ -13,7 +13,7 @@ const commonConfig = {
 await esbuild.build({
   ...commonConfig,
   format: "cjs",
-  outfile: "lib/index.js",
+  outfile: "lib/index.cjs",
 });
 
 await esbuild.build({

@@ -1,4 +1,4 @@
-import Spamlet from "../src/index.js";
+import Spamlet from "spamlet";
 
 const starterUrl = "http://localhost:5173";
 const disallowedFilters = [/.*\?.*/gm, /#.*/gm];
