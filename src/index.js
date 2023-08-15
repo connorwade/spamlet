@@ -27,19 +27,19 @@ export default class Spamlet {
   port;
 
   /**
-   * @type {import("./types.js").SelectorCallbackContainer}
+   * @type {SelectorCallbackContainer}
    */
   onSelectorCallbacks = [];
   /**
-   * @type {import("./types.js").PageLoadCallbackContainer}
+   * @type {PageLoadCallbackContainer}
    */
   onPageLoadCallbacks = [];
   /**
-   * @type {import("./types.js").PageResponseCallbackContainer}
+   * @type {PageResponseCallbackContainer}
    */
   onPageResponseCallbacks = [];
   /**
-   * @type {import("./types.js").LocatorCallbackContainer}
+   * @type {LocatorCallbackContainer}
    */
   onLocatorCallbacks = [];
 
@@ -265,7 +265,7 @@ export default class Spamlet {
   /**
    *
    * @param {string} selector
-   * @param {import("./types.js").SelectorCallback} cb
+   * @param {SelectorCallback} cb
    */
   async onSelector(selector, cb) {
     this.onSelectorCallbacks.push({
@@ -290,7 +290,7 @@ export default class Spamlet {
   /**
    *
    * @param {import('playwright').Locator} loc
-   * @param {import("./types.js").LocatorCallback} cb
+   * @param {LocatorCallback} cb
    */
   async onLocator(loc, cb) {
     this.onLocatorCallbacks.push({
@@ -313,7 +313,7 @@ export default class Spamlet {
 
   /**
    *
-   * @param {import("./types.js").PageLoadCallback} cb
+   * @param {PageLoadCallback} cb
    */
   async onPageLoad(cb) {
     this.onPageLoadCallbacks.push({
@@ -329,7 +329,7 @@ export default class Spamlet {
 
   /**
    *
-   * @param {import("./types.js").PageResponseCallback} cb
+   * @param {PageResponseCallback} cb
    */
   async onPageResponse(cb) {
     this.onPageResponseCallbacks.push({
@@ -345,14 +345,14 @@ export default class Spamlet {
 
   /**
    * @type {{
-   *  event: import('./types.js').PageEvents
+   *  event: PageEvents
    *  cb: (page: (import("playwright").Page)) => void
    * }[]}
    */
   pageEvents = [];
   /**
    *
-   * @param {import('./types.js').PageEvents} event
+   * @param {PageEvents} event
    * @param {(page:(import("playwright").Page)) => void} cb
    */
   addPageEvent(event, cb) {
@@ -375,3 +375,67 @@ export default class Spamlet {
     return page;
   }
 }
+
+/**
+ * @typedef {"close"
+ * | "console"
+ * | "crash"
+ * | "dialog"
+ * | "domcontentloaded"
+ * | "download"
+ * | "filechooser"
+ * | "frameattached"
+ * | "framedetached"
+ * | "framenavigated"
+ * | "load"
+ * | "pageerror"
+ * | "popup"
+ * | "request"
+ * | "requestfailed"
+ * | "requestfinished"
+ * | "response"
+ * | "websocket"
+ * | "worker"} PageEvents
+ */
+
+/**
+ * @typedef {function(import("playwright").Locator): Promise<void>} SelectorCallback
+ */
+
+/**
+ * @typedef {function(import('playwright').Page):Promise<void>} PageLoadCallback
+ */
+
+/**
+ * @typedef {function(import('playwright').Response): Promise<void>} PageResponseCallback
+ */
+
+/**
+ * @typedef {function(import("playwright").Locator): Promise<void>} LocatorCallback
+ */
+
+/**
+ * @typedef {{
+ *locs: import('playwright').Locator;
+ *callback: LocatorCallback;
+ * }[]} LocatorCallbackContainer
+ */
+
+/**
+ * @typedef {{
+ * callback: PageResponseCallback;
+ * }[]} PageResponseCallbackContainer
+ */
+
+/**
+ * @typedef {{
+ *  callback: PageLoadCallback;
+ * }[]} PageLoadCallbackContainer
+ */
+
+/**
+ * @typedef {{
+ *  selector: string;
+ *  callback: SelectorCallback
+ * }[]} SelectorCallbackContainer
+ */
