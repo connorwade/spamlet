@@ -1,15 +1,29 @@
-## In Alpha - Expect API changes
+## Beta - Expect API changes
 
 # Spamlet
 
 Spamlet is a simple and efficient crawler plugin for Playwright.
 
+Compatible with TypeScript, Module JS, and Common JS.
+
 ## Install
 
-This is not distributed on npm yet. But in the future the command will be:
+Spamlet requires Playwright as a dependency. 
 
 ```bash
 npm -i playwright spamlet
+```
+
+### Importing to a project
+
+#### Commonjs
+```JS
+const Spamlet = require("spamlet").default;
+```
+
+#### JS Modules & TypeScript
+```JS
+import Spamlet from "spamlet";
 ```
 
 ## Initializing a crawler
@@ -37,9 +51,9 @@ await crawler.crawl(starterUrl)
 
 Spamlet has a few API's to make crawling easier.
 
-- OnSelector - takes a selector and defines actions the crawler performs on the page
-- On PageLoad - defines actions for the crawler to take when a page loads
-- On PageResponse - defines actions for the crawler to take when response data is returned
+- `onSelector` - takes a selector and defines actions the crawler performs on the page
+- `onPageLoad` - defines actions for the crawler to take when a page loads
+- `onPageResponse` - defines actions for the crawler to take when response data is returned
 
 ```JS
 crawler.onPageResponse(async (res) => {
@@ -62,7 +76,7 @@ crawler.onPageLoad(async (page) => {
 
 Spamlet can use Playwright's events.
 
-Page events have to be registered using `addPageEvent`. Page events using this method will attach to the page right after context but before the page navigates to the url.
+Page events have to be registered using `addPageEvent`. Page events using this method will attach to the page right after context creation but before the page navigates to the url.
 
 ```JS
 crawler.addPageEvent("load", (page) => {
@@ -85,6 +99,8 @@ crawler.context.on("request", (req) => {
 This may change in the future to match the `addPageEvent` method.
 
 ### Example
+
+See the `/examples` folder for more demos.
 
 ```JS
 import Spamlet from "spamlet";
