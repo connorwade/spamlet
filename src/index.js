@@ -22,7 +22,7 @@ export default class Spamlet {
    */
   cbStack = [];
   /**
-   * @type {string | number}
+   * @type {number}
    */
   port;
 
