@@ -1,6 +1,6 @@
 {
   "name": "spamlet",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "spamlet is an efficient and simple crawler for playwright",
   "main": "lib/index.cjs",
   "module": "lib/index.mjs",
@@ -22,7 +22,8 @@
     "test": "jest",
     "example:sitemap": "node examples/sitemap.js",
     "build": "node build.js && tsc",
-    "build:types": "tsc"
+    "build:types": "tsc",
+    "generate:version": "node ./scripts/version.js"
   },
   "keywords": [
     "playwright",
