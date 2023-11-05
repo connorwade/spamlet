@@ -3,15 +3,19 @@ import { getNextOpenPort } from "./getPort.js";
 import { sleep } from "./utils.js";
 
 /**
- * Create a new Spamlet object
+ * Create a new Spamlet crawler object
  * @class
  */
 export default class Spamlet {
+  /**@lends Spamlet */
+
   /**
+   * A set of the URL's that this Spamlet instance has visited.
    * @type {Set<string>}
    */
   visitedUrls = new Set();
   /**
+   * The callback stack for Spamlet.
    * @type {{
    * type: string,
    * url?: URL | string,
@@ -22,28 +26,40 @@ export default class Spamlet {
    */
   cbStack = [];
   /**
+   * The port that Spamlet is using for its browser.
    * @type {number}
    */
   port;
 
   /**
+   * The current page being processed by Spamlet
+   * @type {URL}
+   */
+  currentPage = new URL("https://example.com");
+
+  /**
+   * The onSelector callbacks that run when Spamlet encounters selectors
    * @type {SelectorCallbackContainer}
    */
   onSelectorCallbacks = [];
   /**
+   * The onPageLoad callbacks that run when a page loads
    * @type {PageLoadCallbackContainer}
    */
   onPageLoadCallbacks = [];
   /**
+   * The onPageResponse callbacks that run when a page response is read by Spamlet
    * @type {PageResponseCallbackContainer}
    */
   onPageResponseCallbacks = [];
   /**
+   * The onLocator callbacks that run when a particular locator is found
    * @type {LocatorCallbackContainer}
    */
   onLocatorCallbacks = [];
 
   /**
+   * @constructor
    * @param {string[]} allowedDomains
    * @param {RegExp[]} disallowedFilters
    * @param {'chromium' | 'firefox' | 'webkit'} browserType
@@ -55,7 +71,6 @@ export default class Spamlet {
    *    contextOptions?: import('playwright').BrowserContextOptions
    * }} options
    */
-
   constructor(
     allowedDomains,
     disallowedFilters,
@@ -90,6 +105,7 @@ export default class Spamlet {
     this.currentDepth = 0;
   }
 
+  /** Creates the Playwright context for Spamlet */
   async initContext() {
     this.port = await getNextOpenPort();
     /**
@@ -120,17 +136,26 @@ export default class Spamlet {
 
   /**
    * initiates the crawl with the Spamlet
+   * @example
+   * // Starts crawl at 'https://www.example.com'
+   * await spamlet.crawl('https://www.example.com')
    * @param {string} starterUrl
    */
   async crawl(starterUrl) {
     let numOfRequests = 0;
 
     let start = this.sanitizeLink(starterUrl);
+    if (!start) {
+      console.error(`Spamlet Error - Bad starter URL: ${starterUrl}`);
+      return;
+    }
+    this.currentPage = new URL(starterUrl);
     await this.visitLink(start);
 
     let startTime = performance.now();
     while (this.cbStack.length) {
       let execFrame = this.cbStack.pop();
+      this.currentPage = new URL(execFrame.url);
       switch (execFrame.type) {
         case "REQUEST":
           if (
@@ -191,14 +216,13 @@ export default class Spamlet {
     } else {
       await this.#onPageLoadHandler(page);
       await this.#onSelectorHandler(page);
-      await this.#onLocatorHandler(page);
     }
 
     await page.close();
   }
 
   /**
-   *
+   * Adds an href to the main callback stack.
    * @param {string} link
    */
   async visitLink(link) {
@@ -209,7 +233,17 @@ export default class Spamlet {
     });
   }
 
+  /**
+   * Internally used by Spamlet to check links before visiting. However, you can use it in hooks or events to validate links for your Spamlet model
+   * @param {import("playwright").Page} page
+   * @param {string | URL} link
+   * @returns {Promise<boolean>}
+   */
   async validateLink(page, link) {
+    if (link instanceof URL) {
+      link = link.toString();
+    }
+
     let disallowed = false;
     for (let i = 0; i < this.disallowedFilters.length; i++) {
       disallowed = this.disallowedFilters[i].test(link);
@@ -237,11 +271,12 @@ export default class Spamlet {
   }
 
   /**
-   *
+   * Spamlet sanitization of hrefs to use before visiting a page
    * @param {string | URL} link
-   * @returns
+   * @param {string} origin
+   * @returns {string | undefined}
    */
-  sanitizeLink(link, origin) {
+  sanitizeLink(link, origin = this.currentPage.origin) {
     if (link instanceof URL) {
       return link.toString();
     }
@@ -250,10 +285,8 @@ export default class Spamlet {
       let value = new URL(link).toString();
       return value;
     } catch {
-      let originUrl = new URL(origin);
-      let originBase = originUrl.origin;
       if (link[0] === "/" || link[0] === "#" || link[0] === "?") {
-        let value = originBase + link;
+        let value = origin + link;
         return new URL(value).toString();
       } else {
         console.error("Unhandled href type:", link);
@@ -263,8 +296,8 @@ export default class Spamlet {
   }
 
   /**
-   *
-   * @param {string} selector
+   * Adds a onSelector hook to Spamlet that runs when a selector is found on a page
+   * @param {string} selector - A CSS selector
    * @param {SelectorCallback} cb
    */
   async onSelector(selector, cb) {
@@ -288,31 +321,7 @@ export default class Spamlet {
   }
 
   /**
-   *
-   * @param {import('playwright').Locator} loc
-   * @param {LocatorCallback} cb
-   */
-  async onLocator(loc, cb) {
-    this.onLocatorCallbacks.push({
-      locs: loc,
-      callback: cb,
-    });
-  }
-
-  /**
-   *
-   * @param {import('playwright').Page} page
-   */
-  async #onLocatorHandler(page) {
-    for (const { locs, callback } of this.onLocatorCallbacks) {
-      for (const loc of await locs.all()) {
-        await callback(loc);
-      }
-    }
-  }
-
-  /**
-   *
+   *  Adds a onPageLoad callback hook that fires when a page loads. Compared to using Playwright's load event, this hook fires after the event happens.
    * @param {PageLoadCallback} cb
    */
   async onPageLoad(cb) {
@@ -328,7 +337,8 @@ export default class Spamlet {
   }
 
   /**
-   *
+   * Adds a onPageResponse callback hook that fires after Spamlet gets a page response.
+   * Response hooks run only after a page closes. If you need to process a response immediately after it is retrieved, use the response Event.
    * @param {PageResponseCallback} cb
    */
   async onPageResponse(cb) {
@@ -374,6 +384,40 @@ export default class Spamlet {
     }
     return page;
   }
+
+  /**
+   * @type {{
+   *  event: ContextEvents,
+   * cb: (context: (import('playwright').BrowserContext)) => void
+   * }[]}
+   */
+  contextEvents = [];
+
+  /**
+   *
+   * @param {ContextEvents} event
+   * @param {(context: (import('playwright').BrowserContext)) => void} cb
+   */
+  addContextEvent(event, cb) {
+    this.contextEvents.push({
+      event,
+      cb,
+    });
+  }
+
+  /**
+   *
+   * @param {import("playwright").BrowserContext} context
+   * @returns
+   */
+  #attachContextEvents(context) {
+    for (const { event, cb } of this.contextEvents) {
+      // @ts-ignore
+      context.on(event, cb);
+    }
+
+    return context;
+  }
 }
 
 /**
@@ -396,6 +440,11 @@ export default class Spamlet {
  * | "response"
  * | "websocket"
  * | "worker"} PageEvents
+ */
+
+/**
+ * @typedef {"backgroundpage" | "close" | "console" | "dialog" | "page" | "request" | "requestfailed" | "requestfinished" | "response" | "serviceworker"} ContextEvents
+ *
  */
 
 /**
